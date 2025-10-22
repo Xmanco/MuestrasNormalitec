@@ -117,6 +117,7 @@ export function SampleList({ refresh }: SampleListProps) {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marca</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modelo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Responsable</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estatus</th>
@@ -127,13 +128,13 @@ export function SampleList({ refresh }: SampleListProps) {
             <tbody className="divide-y divide-gray-200">
               {samples.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                     No hay muestras registradas
                   </td>
                 </tr>
               ) : filteredSamples.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                     No se encontraron muestras que coincidan con "{searchTerm}"
                   </td>
                 </tr>
@@ -143,6 +144,7 @@ export function SampleList({ refresh }: SampleListProps) {
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{sample.id}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{sample.marca}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{sample.modelo}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{sample.descripcion || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">
                       {new Date(sample.fechaRecepcion).toLocaleDateString()}
                     </td>
