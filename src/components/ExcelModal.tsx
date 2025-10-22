@@ -85,10 +85,10 @@ export function ExcelModal({ onClose, onImportComplete }: ExcelModalProps) {
               <div className="flex-1">
                 <h4 className="font-semibold text-green-900 mb-2">Importar desde Excel</h4>
                 <p className="text-green-800 text-sm mb-3">
-                  Sube un archivo Excel con las columnas: Marca, Modelo, Fecha Recepción, Responsable (obligatorios) y opcionalmente: Razón Social, N° Solicitud, Descripción, ID.
+                  Sube un archivo Excel con las columnas: Marca, Modelo, Fecha Recepción, Responsable (obligatorios) y opcionalmente: Razón Social, N° Solicitud, Descripción, ID, Estatus Actual, Historial de Estatus.
                 </p>
                 <p className="text-green-800 text-sm mb-3">
-                  Si incluyes el ID de una muestra existente, se actualizará. Si no, se creará una nueva.
+                  Si incluyes el ID de una muestra existente, se actualizará. Si el archivo tiene "Historial de Estatus", se preservarán los estatus anteriores.
                 </p>
 
                 <label className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition cursor-pointer">
@@ -172,6 +172,8 @@ export function ExcelModal({ onClose, onImportComplete }: ExcelModalProps) {
                 <li>Razón Social</li>
                 <li>N° Solicitud</li>
                 <li>Descripción</li>
+                <li>Estatus Actual (se preserva al reimportar)</li>
+                <li>Historial de Estatus (se preserva automáticamente)</li>
               </ul>
             </div>
           </div>

@@ -22,6 +22,7 @@ export const excelService = {
       'N° Solicitud': s.numeroSolicitud || '',
       Descripción: s.descripcion || '',
       'Estatus Actual': s.currentStatus,
+      'Historial de Estatus': JSON.stringify(s.statusHistory),
       'Días en Sistema': this.getDaysInSystem(s),
       'Fecha Registro': new Date(s.createdAt).toLocaleString()
     }));
@@ -100,6 +101,29 @@ export const excelService = {
             const id = row.ID;
             const existingSample = id ? storageService.getSampleById(id) : null;
 
+            let statusHistory: StatusChange[] = [];
+            let currentStatus: SampleStatus = 'En Almacén';
+
+            if (row['Historial de Estatus'] || row.HistorialDeEstatus) {
+              try {
+                const historialStr = row['Historial de Estatus'] || row.HistorialDeEstatus;
+                const parsedHistory = JSON.parse(historialStr);
+                if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
+                  statusHistory = parsedHistory;
+                  currentStatus = parsedHistory[parsedHistory.length - 1].status;
+                }
+              } catch (e) {
+                // Si falla el parsing, usar valores por defecto
+              }
+            }
+
+            if (row['Estatus Actual'] || row.EstatusActual) {
+              const estatusValue = row['Estatus Actual'] || row.EstatusActual;
+              if (['En Almacén', 'En Laboratorio', 'Regresada', 'Entregada'].includes(estatusValue)) {
+                currentStatus = estatusValue as SampleStatus;
+              }
+            }
+
             if (existingSample) {
               const updatedSample: Sample = {
                 ...existingSample,
@@ -109,7 +133,9 @@ export const excelService = {
                 responsable: row.Responsable,
                 razonSocial: row['Razón Social'] || row.RazonSocial || undefined,
                 numeroSolicitud: row['N° Solicitud'] || row.NumeroSolicitud || undefined,
-                descripcion: row.Descripción || row.Descripcion || undefined
+                descripcion: row.Descripción || row.Descripcion || undefined,
+                currentStatus: statusHistory.length > 0 ? currentStatus : existingSample.currentStatus,
+                statusHistory: statusHistory.length > 0 ? statusHistory : existingSample.statusHistory
               };
 
               storageService.updateSample(id, updatedSample);
@@ -117,6 +143,16 @@ export const excelService = {
             } else {
               const newId = storageService.generateUniqueId();
               const now = new Date().toISOString();
+
+              if (statusHistory.length === 0) {
+                statusHistory = [
+                  {
+                    status: currentStatus,
+                    date: now,
+                    comment: 'Muestra importada desde Excel'
+                  }
+                ];
+              }
 
               const newSample: Sample = {
                 id: newId,
@@ -127,14 +163,8 @@ export const excelService = {
                 razonSocial: row['Razón Social'] || row.RazonSocial || undefined,
                 numeroSolicitud: row['N° Solicitud'] || row.NumeroSolicitud || undefined,
                 descripcion: row.Descripción || row.Descripcion || undefined,
-                currentStatus: 'En Almacén',
-                statusHistory: [
-                  {
-                    status: 'En Almacén' as SampleStatus,
-                    date: now,
-                    comment: 'Muestra importada desde Excel'
-                  }
-                ],
+                currentStatus,
+                statusHistory,
                 createdAt: now
               };
 
