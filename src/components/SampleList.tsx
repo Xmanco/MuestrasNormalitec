@@ -4,7 +4,7 @@ import { storageService } from '../services/storage';
 import { StatusHistoryModal } from './StatusHistoryModal';
 import { UpdateStatusModal } from './UpdateStatusModal';
 import { QRLabel } from './QRLabel';
-import { History, Edit, Printer, Trash2, X } from 'lucide-react';
+import { History, Edit, Printer, Trash2, X, Search } from 'lucide-react';
 
 interface SampleListProps {
   refresh: number;
@@ -19,6 +19,8 @@ const statusColors: Record<SampleStatus, string> = {
 
 export function SampleList({ refresh }: SampleListProps) {
   const [samples, setSamples] = useState<Sample[]>([]);
+  const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -31,8 +33,34 @@ export function SampleList({ refresh }: SampleListProps) {
     loadSamples();
   }, [refresh]);
 
+  useEffect(() => {
+    filterSamples();
+  }, [samples, searchTerm]);
+
   const loadSamples = () => {
     setSamples(storageService.getAllSamples());
+  };
+
+  const filterSamples = () => {
+    if (!searchTerm.trim()) {
+      setFilteredSamples(samples);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase();
+    const filtered = samples.filter((sample) => {
+      return (
+        sample.id.toLowerCase().includes(term) ||
+        sample.marca.toLowerCase().includes(term) ||
+        sample.modelo.toLowerCase().includes(term) ||
+        sample.responsable.toLowerCase().includes(term) ||
+        (sample.razonSocial?.toLowerCase().includes(term)) ||
+        (sample.numeroSolicitud?.toLowerCase().includes(term)) ||
+        (sample.descripcion?.toLowerCase().includes(term)) ||
+        new Date(sample.fechaRecepcion).toLocaleDateString().includes(term)
+      );
+    });
+    setFilteredSamples(filtered);
   };
 
   const getDaysInSystem = (sample: Sample) => {
@@ -63,7 +91,23 @@ export function SampleList({ refresh }: SampleListProps) {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Lista de Muestras</h2>
-          <p className="text-gray-600 mt-1">Total: {samples.length} muestras</p>
+          <p className="text-gray-600 mt-1">
+            Total: {samples.length} muestras
+            {searchTerm && ` | Mostrando: ${filteredSamples.length}`}
+          </p>
+
+          <div className="mt-4 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="text-gray-400" size={20} />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por marca, modelo, fecha, responsable, razón social, solicitud o descripción..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -87,8 +131,14 @@ export function SampleList({ refresh }: SampleListProps) {
                     No hay muestras registradas
                   </td>
                 </tr>
+              ) : filteredSamples.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    No se encontraron muestras que coincidan con "{searchTerm}"
+                  </td>
+                </tr>
               ) : (
-                samples.map((sample) => (
+                filteredSamples.map((sample) => (
                   <tr key={sample.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{sample.id}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{sample.marca}</td>
